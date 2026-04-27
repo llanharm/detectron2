@@ -45,7 +45,8 @@ def get_extensions():
     sources = [main_source] + sources
     extension = CppExtension
 
-    extra_compile_args = {"cxx": ["-O3", "-std=c++17"]}
+    # Using -O2 instead of -O3 to reduce compile time during local development
+    extra_compile_args = {"cxx": ["-O2", "-std=c++17"]}
     define_macros = []
 
     if (torch.cuda.is_available() and ((CUDA_HOME is not None) or is_rocm_pytorch)) or os.getenv(
@@ -55,7 +56,7 @@ def get_extensions():
         sources += source_cuda
         define_macros += [("WITH_CUDA", None)]
         extra_compile_args["nvcc"] = [
-            "-O3",
+            "-O2",  # lowered from -O3 for faster local builds
             "-DCUDA_HAS_FP16=1",
             "-D__CUDA_NO_HALF_OPERATORS__",
             "-D__CUDA_NO_HALF_CONVERSIONS__",
@@ -89,54 +90,4 @@ def get_model_zoo_configs() -> List[str]:
         shutil.rmtree(destination)
     try:
         shutil.copytree(source_configs_dir, destination)
-    except Exception:
-        pass
-    config_paths = glob.glob("configs/**/*.yaml", recursive=True) + glob.glob(
-        "configs/**/*.py", recursive=True
-    )
-    return config_paths
-
-
-setup(
-    name="detectron2",
-    version=get_version(),
-    author="FAIR",
-    url="https://github.com/facebookresearch/detectron2",
-    description="Detectron2 is FAIR's next-generation platform for object detection and segmentation.",
-    packages=find_packages(exclude=("configs", "tests", "*.tests", "*.tests.*", "tests.*")),
-    package_data={"detectron2.model_zoo": get_model_zoo_configs()},
-    python_requires=">=3.7",
-    install_requires=[
-        "Pillow>=7.1",
-        "matplotlib",
-        "pycocotools>=2.0.2",
-        "termcolor>=1.1",
-        "yacs>=0.1.8",
-        "tabulate",
-        "cloudpickle",
-        "tqdm>4.29.0",
-        "tensorboard",
-        "fvcore>=0.1.5,<0.1.6",
-        "iopath>=0.1.7,<0.1.10",
-        "omegaconf>=2.1,<2.4",
-        "hydra-core>=1.1",
-        "black",
-        "packaging",
-    ],
-    extras_require={
-        "all": [
-            "shapely",
-            "pygments>=2.2",
-            "psutil",
-            "panopticapi @ https://github.com/cocodataset/panopticapi/archive/master.zip",
-        ],
-        "dev": [
-            "flake8==3.8.1",
-            "isort",
-            "flake8-bugbear",
-            "flake8-comprehensions",
-        ],
-    },
-    ext_modules=get_extensions(),
-    cmdclass={"build_ext": torch.utils.cpp_extension.BuildExtension},
-)
+    except 
