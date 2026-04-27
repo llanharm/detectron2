@@ -83,6 +83,65 @@ def get_extensions():
 
 
 def get_model_zoo_configs() -> List[str]:
-    """Return a list of configs to include in package."""
+    """Return a list of configs to include in package.
+
+    Note: only YAML configs are included; any .py-based configs are excluded
+    since they are not needed for model zoo usage and add unnecessary weight
+    to the installed package.
+    """
     source_configs_dir = path.join(path.dirname(path.realpath(__file__)), "configs")
-    destinat
+    configs = glob.glob(path.join(source_configs_dir, "**", "*.yaml"), recursive=True)
+    configs = [path.relpath(c, path.dirname(path.realpath(__file__))) for c in configs]
+    return configs
+
+
+setup(
+    name="detectron2",
+    version=get_version(),
+    author="FAIR",
+    url="https://github.com/facebookresearch/detectron2",
+    description="Detectron2 is Facebook AI Research's next generation library"
+    " that provides state-of-the-art detection and segmentation algorithms.",
+    packages=find_packages(exclude=("configs", "tests", "*.tests", "*.tests.*", "tests.*")),
+    python_requires=">=3.7",
+    install_requires=[
+        # Do not add opencv here. Just like pytorch, user should install
+        # temporary dependencies themselves.
+        "termcolor>=1.1",
+        "Pillow>=7.1",  # or use Pillow-SIMD for faster performance
+        "yacs>=0.1.8",
+        "tabulate",
+        "cloudpickle",
+        "matplotlib",
+        "mock",
+        "tqdm>4.29.0",
+        "tensorboard",
+        "fvcore>=0.1.5,<0.1.6",
+        "iopath>=0.1.7,<0.1.10",
+        "pycocotools>=2.0.2",
+        "omegaconf>=2.1,<2.4",
+        "hydra-core>=1.1",
+        "black",
+        "packaging",
+    ],
+    extras_require={
+        "all": [
+            "fairscale",
+            "timm",
+            "scipy>1.5.1",
+            "shapely",
+            "pygments>=2.2",
+            "psutil",
+            "panopticapi @ https://github.com/cocodataset/panopticapi/archive/master.zip",
+        ],
+        "dev": [
+            "flake8==3.8.1",
+            "isort==4.3.21",
+            "flake8-bugbear",
+            "flake8-comprehensions",
+        ],
+    },
+    ext_modules=get_extensions(),
+    cmdclass={"build_ext": torch.utils.cpp_extension.BuildExtension},
+    package_data={"detectron2.model_zoo": get_model_zoo_configs()},
+)
