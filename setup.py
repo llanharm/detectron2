@@ -47,6 +47,7 @@ def get_extensions():
 
     # Using -O0 instead of -O2/-O3 to minimize compile time during local development.
     # Note: -O0 disables all optimizations; fine for iterating locally, not for benchmarking.
+    # Personal note: switch cxx to -O2 when running actual benchmarks or profiling.
     extra_compile_args = {"cxx": ["-O0", "-std=c++17"]}
     define_macros = []
 
@@ -84,5 +85,4 @@ def get_extensions():
 def get_model_zoo_configs() -> List[str]:
     """Return a list of configs to include in package."""
     source_configs_dir = path.join(path.dirname(path.realpath(__file__)), "configs")
-    destination = path.join(
- 
+    destinat
