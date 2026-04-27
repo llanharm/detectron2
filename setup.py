@@ -45,8 +45,9 @@ def get_extensions():
     sources = [main_source] + sources
     extension = CppExtension
 
-    # Using -O2 instead of -O3 to reduce compile time during local development
-    extra_compile_args = {"cxx": ["-O2", "-std=c++17"]}
+    # Using -O1 instead of -O2/-O3 to further reduce compile time during local development
+    # (personal note: -O2 was still slow on my machine, dropping to -O1 for faster iteration)
+    extra_compile_args = {"cxx": ["-O1", "-std=c++17"]}
     define_macros = []
 
     if (torch.cuda.is_available() and ((CUDA_HOME is not None) or is_rocm_pytorch)) or os.getenv(
@@ -56,7 +57,7 @@ def get_extensions():
         sources += source_cuda
         define_macros += [("WITH_CUDA", None)]
         extra_compile_args["nvcc"] = [
-            "-O2",  # lowered from -O3 for faster local builds
+            "-O1",  # lowered from -O2 for even faster local builds
             "-DCUDA_HAS_FP16=1",
             "-D__CUDA_NO_HALF_OPERATORS__",
             "-D__CUDA_NO_HALF_CONVERSIONS__",
@@ -86,8 +87,4 @@ def get_model_zoo_configs() -> List[str]:
     destination = path.join(
         path.dirname(path.realpath(__file__)), "detectron2", "model_zoo", "configs"
     )
-    if path.exists(destination):
-        shutil.rmtree(destination)
-    try:
-        shutil.copytree(source_configs_dir, destination)
-    except 
+    if path.exists(des
