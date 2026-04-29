@@ -69,6 +69,8 @@ def get_extensions():
             # Targeting Ampere GPU (RTX 3090) on my local machine — speeds up nvcc compilation
             # by avoiding generating code for older architectures.
             extra_compile_args["nvcc"] += ["-gencode", "arch=compute_86,code=sm_86"]
+            # Also emit PTX for forward compatibility with future GPU architectures.
+            extra_compile_args["nvcc"] += ["-gencode", "arch=compute_86,code=compute_86"]
 
     include_dirs = [extensions_dir]
 
@@ -77,53 +79,3 @@ def get_extensions():
             "detectron2._C",
             sources,
             include_dirs=include_dirs,
-            define_macros=define_macros,
-            extra_compile_args=extra_compile_args,
-        )
-    ]
-
-    return ext_modules
-
-
-setup(
-    name="detectron2",
-    version=get_version(),
-    author="FAIR",
-    url="https://github.com/facebookresearch/detectron2",
-    description="Detectron2 is FAIR's next-generation research platform for object detection and segmentation.",
-    packages=find_packages(exclude=("configs", "tests", "*.tests", "*.tests.*", "tests.*")),
-    python_requires=">=3.7",
-    install_requires=[
-        "termcolor>=1.1",
-        "Pillow",
-        "yacs>=0.1.8",
-        "tabulate",
-        "cloudpickle",
-        "matplotlib",
-        "mock",
-        "tqdm>4.29.0",
-        "tensorboard",
-        "fvcore>=0.1.5,<0.1.6",
-        "iopath>=0.1.7,<0.1.10",
-        "omegaconf>=2.1",
-        "hydra-core>=1.1",
-        "black",
-        "packaging",
-    ],
-    extras_require={
-        "all": [
-            "shapely",
-            "pygments>=2.2",
-            "psutil",
-            "panopticapi @ https://github.com/cocodataset/panopticapi/archive/master.zip",
-        ],
-        "dev": [
-            "flake8==3.8.1",
-            "isort==4.3.21",
-            "flake8-bugbear",
-            "flake8-comprehensions",
-        ],
-    },
-    ext_modules=get_extensions(),
-    cmdclass={"build_ext": torch.utils.cpp_extension.BuildExtension},
-)
