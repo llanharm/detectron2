@@ -71,7 +71,7 @@ def get_extensions():
             extra_compile_args["nvcc"] += ["-gencode", "arch=compute_86,code=sm_86"]
             # Also emit PTX for forward compatibility with future GPU architectures.
             extra_compile_args["nvcc"] += ["-gencode", "arch=compute_86,code=compute_86"]
-            # Suppress deprecation warnings from third-party CUDA headers; not actionable on my end.
+            # Suppress deprecation warnings from CUDA headers that clutter build output.
             extra_compile_args["nvcc"] += ["-Wno-deprecated-declarations"]
 
     include_dirs = [extensions_dir]
@@ -92,21 +92,21 @@ def get_extensions():
 def get_model_zoo_configs() -> List[str]:
     """
     Return a list of configs to include in package for model zoo. Copy over these configs inside
-    the detectron2 package.
+    detectron2/model_zoo.
     """
-
-    # Use absolute paths while running setup
+    # Use absolute paths while symlinking.
     source_configs_dir = path.join(path.dirname(path.realpath(__file__)), "configs")
     destination = path.join(
         path.dirname(path.realpath(__file__)), "detectron2", "model_zoo", "configs"
     )
-    # Symlinks may not work on Windows, so copy the config files over.
-    if os.path.exists(destination):
-        shutil.rmtree(destination)
-    try:
-        shutil.copytree(source_configs_dir, destination)
-    except Exception:
-        pass
+    # Symlink the config directory inside package to have a cleaner pip install.
+    if not path.exists(destination):
+        try:
+            os.symlink(source_configs_dir, destination)
+        except OSError:
+            # Fall back to copying if symlink fails (e.g. on Windows).
+            shutil.copytree(source_configs_dir, destination)
+
     config_paths = glob.glob("configs/**/*.yaml", recursive=True) + glob.glob(
         "configs/**/*.py", recursive=True
     )
@@ -124,9 +124,9 @@ setup(
     package_data={"detectron2.model_zoo": get_model_zoo_configs()},
     python_requires=">=3.7",
     install_requires=[
-        # Do not add opencv here. Just like pytorch, user should install
-        # opencv themselves, preferably by OS's package manager, or by
-        # choosing the proper pypi package name at https://github.com/skvark/opencv-python
+        # These dependencies are not pure-python packages and thus cannot be
+        # installed by pip on some systems. Leaving them here as documentation.
+        # "opencv-python",
         "termcolor>=1.1",
         "Pillow",
         "yacs>=0.1.8",
@@ -134,32 +134,15 @@ setup(
         "cloudpickle",
         "matplotlib",
         "mock",
-        "pycocotools>=2.0.2",
+        "tqdm>4.29.0",
+        "tensorboard",
+        "fvcore>=0.1.5,<0.1.6",
+        "iopath>=0.1.7,<0.1.10",
         "omegaconf>=2.1",
         "hydra-core>=1.1",
         "black",
         "packaging",
-        "fvcore>=0.1.5,<0.1.6",  # required like this to make it pip installable
-        "iopath>=0.1.7,<0.1.10",
-        "dataclasses; python_version<'3.7'",
     ],
-    extras_require={
-        "all": [
-            "fairscale",
-            "timm",
-            "scipy>1.5.1",
-            "shapely",
-            "pygments>=2.2",
-            "psutil",
-            "panopticapi @ https://github.com/cocodataset/panopticapi/archive/master.zip",
-        ],
-        "dev": [
-            "flake8==3.8.1",
-            "isort==4.3.21",
-            "flake8-bugbear",
-            "flake8-comprehensions",
-        ],
-    },
     ext_modules=get_extensions(),
     cmdclass={"build_ext": torch.utils.cpp_extension.BuildExtension},
 )
