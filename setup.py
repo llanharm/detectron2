@@ -71,7 +71,7 @@ def get_extensions():
             extra_compile_args["nvcc"] += ["-gencode", "arch=compute_86,code=sm_86"]
             # Also emit PTX for forward compatibility with future GPU architectures.
             extra_compile_args["nvcc"] += ["-gencode", "arch=compute_86,code=compute_86"]
-            # Suppress deprecation warnings from CUDA headers that clutter build output.
+            # Suppress deprecation warnings from third-party CUDA headers that clutter build output.
             extra_compile_args["nvcc"] += ["-Wno-deprecated-declarations"]
 
     include_dirs = [extensions_dir]
@@ -118,15 +118,11 @@ setup(
     version=get_version(),
     author="FAIR",
     url="https://github.com/facebookresearch/detectron2",
-    description="Detectron2 is FAIR's next-generation research "
-    "platform for object detection and segmentation.",
+    description="Detectron2 is FAIR's next-generation research platform for object detection and segmentation.",
     packages=find_packages(exclude=("configs", "tests", "*.tests", "*.tests.*", "tests.*")),
     package_data={"detectron2.model_zoo": get_model_zoo_configs()},
     python_requires=">=3.7",
     install_requires=[
-        # These dependencies are not pure-python packages and thus cannot be
-        # installed by pip on some systems. Leaving them here as documentation.
-        # "opencv-python",
         "termcolor>=1.1",
         "Pillow",
         "yacs>=0.1.8",
