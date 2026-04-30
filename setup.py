@@ -118,27 +118,47 @@ setup(
     version=get_version(),
     author="FAIR",
     url="https://github.com/facebookresearch/detectron2",
-    description="Detectron2 is FAIR's next-generation research platform for object detection and segmentation.",
+    description="Detectron2 is FAIR's next-generation research "
+    "platform for object detection and segmentation.",
     packages=find_packages(exclude=("configs", "tests", "*.tests", "*.tests.*", "tests.*")),
     package_data={"detectron2.model_zoo": get_model_zoo_configs()},
     python_requires=">=3.7",
     install_requires=[
+        # These dependencies are not pure-python.
+        # In general, avoid adding more dependencies here to keep the package lightweight.
+        "Pillow>=7.1",  # https://github.com/python-pillow/Pillow/issues/4832
+        "matplotlib",
+        "pycocotools>=2.0.2",
         "termcolor>=1.1",
-        "Pillow",
         "yacs>=0.1.8",
         "tabulate",
         "cloudpickle",
-        "matplotlib",
-        "mock",
         "tqdm>4.29.0",
         "tensorboard",
-        "fvcore>=0.1.5,<0.1.6",
+        "fvcore>=0.1.5,<0.1.6",  # requires omegaconf>=2.1
         "iopath>=0.1.7,<0.1.10",
         "omegaconf>=2.1",
         "hydra-core>=1.1",
         "black",
         "packaging",
     ],
+    extras_require={
+        "all": [
+            "fairscale",
+            "timm",  # used by a few architectures
+            "scipy>1.5.1",
+            "shapely",
+            "pygments>=2.2",
+            "psutil",
+            "panopticapi @ https://github.com/cocodataset/panopticapi/archive/master.zip",
+        ],
+        "dev": [
+            "flake8==3.8.1",
+            "isort==4.3.21",
+            "flake8-bugbear",
+            "flake8-comprehensions",
+        ],
+    },
     ext_modules=get_extensions(),
     cmdclass={"build_ext": torch.utils.cpp_extension.BuildExtension},
 )
